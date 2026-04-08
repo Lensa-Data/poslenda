@@ -1,0 +1,26 @@
+"use client";
+
+const TITLE_TEXT = `
+ ██████╗  ██████╗ ███████╗
+ ██╔══██╗██╔═══██╗██╔════╝
+ ██████╔╝██║   ██║███████╗
+ ██╔═══╝ ██║   ██║╚════██║
+ ██║     ╚██████╔╝███████║
+ ╚═╝      ╚═════╝ ╚══════╝
+`;
+
+export default function Home() {
+  return (
+    <div className="container mx-auto max-w-3xl px-4 py-2">
+      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
+      <div className="grid gap-6">
+        <section className="rounded-lg border p-4">
+          <h2 className="mb-2 font-medium">Welcome to POS</h2>
+          <p className="text-muted-foreground text-xs">
+            A simple Next.js project with Better Auth, Prisma, and Neon PostgreSQL.
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
