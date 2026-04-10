@@ -69,3 +69,36 @@ model Verification {
   @@index([identifier])
   @@map("verification")
 }
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  totalAmount Float
+  status      OrderStatus @default(PENDING)
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  paymentUrl  String?
+
+  @@map("order")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String // Hardcoded catalog referencing
+  name      String
+  price     Float
+  quantity  Int
+  options   String?
+
+  @@index([orderId])
+  @@map("order_item")
+}
