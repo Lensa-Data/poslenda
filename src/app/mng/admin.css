@@ -1,0 +1,152 @@
+/* Admin Design System — Material Design 3 color tokens */
+/* Fonts are loaded via <link> in admin/layout.tsx (not @import url) */
+
+:root {
+    --a-bg: #fcf9f4;
+    --a-sidebar-bg: #f2efe9;
+    --a-surface-container: #f0ede8;
+    --a-surface-container-low: #f6f3ee;
+    --a-surface-container-high: #ebe8e3;
+    --a-surface-container-highest: #e5e2dd;
+    --a-surface-container-lowest: #ffffff;
+    --a-on-surface: #1c1c19;
+    --a-on-surface-variant: #47473d;
+    --a-primary: #5a5f36;
+    --a-on-primary: #ffffff;
+    --a-primary-container: #73784c;
+    --a-primary-fixed: #e2e7b2;
+    --a-primary-fixed-dim: #c6ca98;
+    --a-on-primary-fixed: #1a1e00;
+    --a-on-primary-fixed-variant: #454a23;
+    --a-secondary: #974822;
+    --a-on-secondary: #ffffff;
+    --a-secondary-container: #ff996d;
+    --a-on-secondary-container: #77300b;
+    --a-tertiary-fixed-dim: #e7bdb1;
+    --a-on-tertiary-fixed-variant: #5d4037;
+    --a-outline: #78786c;
+    --a-outline-variant: #c8c7b9;
+    --a-error: #ba1a1a;
+}
+
+/* Material Symbols Outlined icon font */
+.material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+    user-select: none;
+}
+
+/* Activity card hover — handled in CSS so no JS event handlers needed in Server Components */
+.activity-card {
+    background-color: var(--a-surface-container-low);
+    transition: background-color 0.2s ease;
+}
+
+.activity-card:hover {
+    background-color: var(--a-surface-container);
+}
+
+/* ── Glass panel (floating footer) ─────────────────────────────────────────── */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Scrollbar hide (filter row) ────────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ── Menu item card hover ───────────────────────────────────────────────────── */
+.menu-card {
+    background-color: var(--a-surface-container-low);
+    transition: background-color 0.3s ease;
+}
+
+.menu-card:hover {
+    background-color: var(--a-surface-container-high);
+}
+
+/* ── Edit / Delete action buttons ───────────────────────────────────────────── */
+.btn-edit {
+    background-color: var(--a-surface-container-lowest);
+    color: var(--a-primary);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.btn-edit:hover {
+    background-color: var(--a-primary);
+    color: var(--a-on-primary);
+}
+
+.btn-delete {
+    background-color: var(--a-surface-container-lowest);
+    color: var(--a-secondary);
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.btn-delete:hover {
+    background-color: var(--a-secondary);
+    color: var(--a-on-secondary);
+}
+
+/* ── Category filter buttons ────────────────────────────────────────────────── */
+.filter-btn {
+    background-color: var(--a-surface-container-high);
+    color: var(--a-on-surface-variant);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.filter-btn:hover {
+    background-color: var(--a-surface-container-highest);
+}
+
+.filter-btn.active {
+    background-color: var(--a-primary-fixed);
+    color: var(--a-primary);
+    font-weight: 700;
+}
+
+/* ── Search input ───────────────────────────────────────────────────────────── */
+.search-input {
+    background-color: var(--a-surface-container-lowest);
+    color: var(--a-on-surface);
+    border: none;
+    outline: none;
+    transition: box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 2px rgba(90, 95, 54, 0.2);
+}
+
+.search-input::placeholder {
+    color: var(--a-on-surface-variant);
+    opacity: 0.6;
+}
