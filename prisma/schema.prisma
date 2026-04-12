@@ -76,29 +76,83 @@ enum OrderStatus {
   CANCELLED
 }
 
+model Area {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  tables    Table[]
+
+  createdAt DateTime  @default(now())
+}
+
+model Table {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  seats     Int      @default(4)
+  qrToken   String   @unique @default(cuid())
+
+  areaId    String
+  area      Area     @relation(fields: [areaId], references: [id])
+
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+}
+
 model Order {
   id          String      @id @default(cuid())
   orderNumber String      @unique
   totalAmount Float
   status      OrderStatus @default(PENDING)
+
+  tableId     String
+  table       Table       @relation(fields: [tableId], references: [id])
+
   items       OrderItem[]
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  paymentUrl  String?
 
   @@map("order")
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String // Hardcoded catalog referencing
+  productId String
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
   name      String
   price     Float
   quantity  Int
   options   String?
 
   @@index([orderId])
+  @@index([productId])
   @@map("order_item")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+
+  products  Product[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  stock       Int?
+  isAvailable Boolean  @default(true)
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  orderItems  OrderItem[]
+
+  createdAt   DateTime @default(now())
 }
