@@ -113,18 +113,7 @@ const floorTables: TableItem[] = [
 
 function ActivityItemCard({ item }: { item: ActivityItem }) {
   return (
-    <div
-      className="flex items-center justify-between p-5 rounded-2xl transition-colors duration-200 cursor-default"
-      style={{ backgroundColor: "var(--a-surface-container-low)" }}
-      onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLElement).style.backgroundColor =
-          "var(--a-surface-container)")
-      }
-      onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.backgroundColor =
-          "var(--a-surface-container-low)")
-      }
-    >
+    <div className="activity-card flex items-center justify-between p-5 rounded-2xl cursor-default">
       <div className="flex items-center gap-4">
         <div
           className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
