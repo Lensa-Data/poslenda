@@ -12,8 +12,18 @@ type ActivityItem = {
   description: string;
   rightContent:
     | { type: "amount"; value: string; time: string }
-    | { type: "badge"; text: string; badgeStyle: React.CSSProperties; time: string }
-    | { type: "action"; buttonText: string; buttonStyle: React.CSSProperties; time: string };
+    | {
+        type: "badge";
+        text: string;
+        badgeStyle: React.CSSProperties;
+        time: string;
+      }
+    | {
+        type: "action";
+        buttonText: string;
+        buttonStyle: React.CSSProperties;
+        time: string;
+      };
 };
 
 type TableItem = {
@@ -117,36 +127,53 @@ function ActivityItemCard({ item }: { item: ActivityItem }) {
     >
       <div className="flex items-center gap-4">
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+          className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
           style={{ backgroundColor: item.iconBg, color: item.iconColor }}
         >
           <span className="material-symbols-outlined">{item.icon}</span>
         </div>
         <div>
-          <h5 className="font-bold text-sm" style={{ color: "var(--a-on-surface)" }}>
+          <h5
+            className="font-bold text-sm"
+            style={{ color: "var(--a-on-surface)" }}
+          >
             {item.title}
           </h5>
-          <p className="text-sm" style={{ color: "var(--a-on-surface-variant)" }}>
+          <p
+            className="text-sm"
+            style={{ color: "var(--a-on-surface-variant)" }}
+          >
             {item.description}
           </p>
         </div>
       </div>
 
-      <div className="text-right flex-shrink-0 ml-4">
+      <div className="text-right shrink-0 ml-4">
         {item.rightContent.type === "amount" && (
           <>
-            <p className="font-bold text-sm" style={{ color: "var(--a-on-surface)" }}>
+            <p
+              className="font-bold text-sm"
+              style={{ color: "var(--a-on-surface)" }}
+            >
               {item.rightContent.value}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--a-on-surface-variant)" }}>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "var(--a-on-surface-variant)" }}
+            >
               {item.rightContent.time}
             </p>
           </>
         )}
         {item.rightContent.type === "badge" && (
           <>
-            <span style={item.rightContent.badgeStyle}>{item.rightContent.text}</span>
-            <p className="text-xs mt-1" style={{ color: "var(--a-on-surface-variant)" }}>
+            <span style={item.rightContent.badgeStyle}>
+              {item.rightContent.text}
+            </span>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--a-on-surface-variant)" }}
+            >
               {item.rightContent.time}
             </p>
           </>
@@ -156,7 +183,10 @@ function ActivityItemCard({ item }: { item: ActivityItem }) {
             <button style={item.rightContent.buttonStyle}>
               {item.rightContent.buttonText}
             </button>
-            <p className="text-xs mt-1" style={{ color: "var(--a-on-surface-variant)" }}>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--a-on-surface-variant)" }}
+            >
               {item.rightContent.time}
             </p>
           </>
@@ -174,8 +204,14 @@ function TableCard({ table }: { table: TableItem }) {
   const badgeStyle: React.CSSProperties = isOccupied
     ? { backgroundColor: "var(--a-primary-fixed)", color: "var(--a-primary)" }
     : isClosing
-    ? { backgroundColor: "var(--a-secondary-container)", color: "var(--a-on-secondary-container)" }
-    : { backgroundColor: "var(--a-surface-container)", color: "var(--a-on-surface-variant)" };
+      ? {
+          backgroundColor: "var(--a-secondary-container)",
+          color: "var(--a-on-secondary-container)",
+        }
+      : {
+          backgroundColor: "var(--a-surface-container)",
+          color: "var(--a-on-surface-variant)",
+        };
 
   return (
     <div
@@ -185,7 +221,10 @@ function TableCard({ table }: { table: TableItem }) {
         opacity: isOpen ? 0.6 : 1,
       }}
     >
-      <span className="text-xs font-bold" style={{ color: "var(--a-on-surface-variant)" }}>
+      <span
+        className="text-xs font-bold"
+        style={{ color: "var(--a-on-surface-variant)" }}
+      >
         {table.label}
       </span>
       <div className="flex flex-col items-center">
@@ -195,8 +234,8 @@ function TableCard({ table }: { table: TableItem }) {
             color: isOccupied
               ? "var(--a-primary)"
               : isClosing
-              ? "var(--a-secondary)"
-              : "var(--a-outline-variant)",
+                ? "var(--a-secondary)"
+                : "var(--a-outline-variant)",
             fontVariationSettings: isOpen
               ? undefined
               : "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
@@ -206,7 +245,9 @@ function TableCard({ table }: { table: TableItem }) {
         </span>
         <span
           className="text-lg font-bold"
-          style={{ color: isOpen ? "var(--a-outline-variant)" : "var(--a-on-surface)" }}
+          style={{
+            color: isOpen ? "var(--a-outline-variant)" : "var(--a-on-surface)",
+          }}
         >
           {table.occupied}/{table.capacity}
         </span>
@@ -234,7 +275,10 @@ export default async function AdminDashboardPage() {
         <div>
           <h2
             className="font-extrabold text-3xl tracking-tight"
-            style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
+            style={{
+              fontFamily: "Manrope, sans-serif",
+              color: "var(--a-on-surface)",
+            }}
           >
             Good morning, {firstName}
           </h2>
@@ -245,14 +289,18 @@ export default async function AdminDashboardPage() {
         <div className="flex gap-3">
           <button
             className="w-11 h-11 flex items-center justify-center rounded-full transition-colors"
-            style={{ backgroundColor: "var(--a-surface-container-high)", color: "var(--a-on-surface-variant)" }}
+            style={{
+              backgroundColor: "var(--a-surface-container-high)",
+              color: "var(--a-on-surface-variant)",
+            }}
           >
             <span className="material-symbols-outlined">notifications</span>
           </button>
           <button
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg transition-opacity hover:opacity-90"
             style={{
-              background: "linear-gradient(135deg, var(--a-primary), var(--a-primary-container))",
+              background:
+                "linear-gradient(135deg, var(--a-primary), var(--a-primary-container))",
               color: "var(--a-on-primary)",
               fontFamily: "Inter, sans-serif",
             }}
@@ -282,12 +330,20 @@ export default async function AdminDashboardPage() {
             </p>
             <h3
               className="text-5xl font-extrabold mb-2"
-              style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                color: "var(--a-on-surface)",
+              }}
             >
               $4,280.50
             </h3>
-            <div className="flex items-center gap-2 font-bold" style={{ color: "var(--a-primary)" }}>
-              <span className="material-symbols-outlined text-sm">trending_up</span>
+            <div
+              className="flex items-center gap-2 font-bold"
+              style={{ color: "var(--a-primary)" }}
+            >
+              <span className="material-symbols-outlined text-sm">
+                trending_up
+              </span>
               <span className="text-sm">+12.4% from yesterday</span>
             </div>
           </div>
@@ -295,7 +351,10 @@ export default async function AdminDashboardPage() {
             className="absolute -right-10 -bottom-10 opacity-10 scale-150 transition-transform duration-500 group-hover:rotate-12"
             style={{ color: "var(--a-primary)" }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: "160px" }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: "160px" }}
+            >
               payments
             </span>
           </div>
@@ -307,21 +366,33 @@ export default async function AdminDashboardPage() {
           style={{ backgroundColor: "var(--a-surface-container)" }}
         >
           <div>
-            <span className="material-symbols-outlined mb-4 block" style={{ color: "var(--a-primary)" }}>
+            <span
+              className="material-symbols-outlined mb-4 block"
+              style={{ color: "var(--a-primary)" }}
+            >
               coffee
             </span>
-            <p className="text-sm font-bold" style={{ color: "var(--a-on-surface-variant)" }}>
+            <p
+              className="text-sm font-bold"
+              style={{ color: "var(--a-on-surface-variant)" }}
+            >
               Daily Orders
             </p>
           </div>
           <div>
             <h4
               className="text-4xl font-bold"
-              style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                color: "var(--a-on-surface)",
+              }}
             >
               142
             </h4>
-            <p className="text-xs mt-1" style={{ color: "var(--a-on-surface-variant)" }}>
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--a-on-surface-variant)" }}
+            >
               86 Pour-overs • 56 Espresso
             </p>
           </div>
@@ -333,10 +404,16 @@ export default async function AdminDashboardPage() {
           style={{ backgroundColor: "var(--a-primary-fixed)" }}
         >
           <div>
-            <span className="material-symbols-outlined mb-4 block" style={{ color: "var(--a-on-primary-fixed)" }}>
+            <span
+              className="material-symbols-outlined mb-4 block"
+              style={{ color: "var(--a-on-primary-fixed)" }}
+            >
               chair
             </span>
-            <p className="text-sm font-bold" style={{ color: "var(--a-on-primary-fixed)" }}>
+            <p
+              className="text-sm font-bold"
+              style={{ color: "var(--a-on-primary-fixed)" }}
+            >
               Occupancy
             </p>
           </div>
@@ -344,7 +421,10 @@ export default async function AdminDashboardPage() {
             <div className="flex items-end gap-2">
               <h4
                 className="text-4xl font-bold"
-                style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-primary-fixed)" }}
+                style={{
+                  fontFamily: "Manrope, sans-serif",
+                  color: "var(--a-on-primary-fixed)",
+                }}
               >
                 85%
               </h4>
@@ -375,11 +455,17 @@ export default async function AdminDashboardPage() {
           <div className="flex justify-between items-center mb-6">
             <h3
               className="font-bold text-xl"
-              style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                color: "var(--a-on-surface)",
+              }}
             >
               Recent Activity
             </h3>
-            <button className="text-sm font-bold" style={{ color: "var(--a-primary)" }}>
+            <button
+              className="text-sm font-bold"
+              style={{ color: "var(--a-primary)" }}
+            >
               View Archive
             </button>
           </div>
@@ -398,7 +484,10 @@ export default async function AdminDashboardPage() {
           >
             <h3
               className="font-bold text-xl mb-6"
-              style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
+              style={{
+                fontFamily: "Manrope, sans-serif",
+                color: "var(--a-on-surface)",
+              }}
             >
               Floor Map
             </h3>
