@@ -76,6 +76,11 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum FeeType {
+  PERCENTAGE
+  FIXED
+}
+
 model Area {
   id        String    @id @default(uuid())
   name      String    @unique
@@ -99,18 +104,20 @@ model Table {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique
-  totalAmount Float
-  status      OrderStatus @default(PENDING)
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  subtotalAmount Float       @default(0)
+  totalAmount    Float
+  status         OrderStatus @default(PENDING)
 
-  tableId     String
-  table       Table       @relation(fields: [tableId], references: [id])
+  tableId        String
+  table          Table       @relation(fields: [tableId], references: [id])
 
-  items       OrderItem[]
+  items          OrderItem[]
+  fees           OrderFee[]
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@map("order")
 }
@@ -155,4 +162,29 @@ model Product {
   orderItems  OrderItem[]
 
   createdAt   DateTime @default(now())
+}
+
+model Fee {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  type      FeeType  @default(PERCENTAGE)
+  value     Float
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("fee")
+}
+
+model OrderFee {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  name      String
+  amount    Float
+
+  @@index([orderId])
+  @@map("order_fee")
 }

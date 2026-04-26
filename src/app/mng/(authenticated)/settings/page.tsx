@@ -1,15 +1,12 @@
-export default function SettingsPage() {
-  return (
-    <div>
-      <h1
-        className="text-3xl font-extrabold tracking-tight mb-2"
-        style={{ fontFamily: "Manrope, sans-serif", color: "var(--a-on-surface)" }}
-      >
-        Settings
-      </h1>
-      <p style={{ color: "var(--a-on-surface-variant)" }}>
-        Configure your restaurant portal preferences.
-      </p>
-    </div>
-  );
+import prisma from "@/lib/db";
+import SettingsClient from "@/components/admin/settings-client";
+
+export const dynamic = 'force-dynamic';
+
+export default async function SettingsPage() {
+  const fees = await prisma.fee.findMany({
+    orderBy: { createdAt: "desc" }
+  });
+
+  return <SettingsClient initialFees={fees} />;
 }
