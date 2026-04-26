@@ -9,7 +9,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = { title: "pos", description: "pos" };
+export const metadata: Metadata = {
+  title: "POSLENDA — Pemesanan Digital",
+  description:
+    "Sistem pemesanan digital POSLENDA. Scan QR Code di meja Anda untuk mulai memesan.",
+};
 
 export default function RootLayout({
   children,

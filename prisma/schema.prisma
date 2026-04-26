@@ -76,6 +76,12 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ItemStatus {
+  PENDING_KITCHEN
+  PREPARING
+  SERVED
+}
+
 model Area {
   id        String    @id @default(uuid())
   name      String    @unique
@@ -93,44 +99,73 @@ model Table {
   areaId    String
   area      Area     @relation(fields: [areaId], references: [id])
 
-  orders    Order[]
+  orders        Order[]
+  tableSessions TableSession[]
 
   createdAt DateTime @default(now())
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  orderNumber String      @unique
-  totalAmount Float
-  status      OrderStatus @default(PENDING)
+  id            String        @id @default(cuid())
+  orderNumber   String        @unique
+  totalAmount   Float
+  status        OrderStatus   @default(PENDING)
+  paymentUrl    String?
+  paymentId     String?
+  sessionToken  String?
 
-  tableId     String
-  table       Table       @relation(fields: [tableId], references: [id])
+  tableId       String
+  table         Table         @relation(fields: [tableId], references: [id])
 
-  items       OrderItem[]
+  items         OrderItem[]
+  tableSession  TableSession?
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@map("order")
 }
 
 model OrderItem {
-  id        String   @id @default(cuid())
-  orderId   String
-  productId String
+  id          String     @id @default(cuid())
+  orderId     String
+  productId   String
 
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  order       Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product    @relation(fields: [productId], references: [id])
 
-  name      String
-  price     Float
-  quantity  Int
-  options   String?
+  name        String
+  price       Float
+  quantity    Int
+  options     String?
+  batchNumber Int        @default(1)
+  itemStatus  ItemStatus @default(PENDING_KITCHEN)
+
+  createdAt   DateTime   @default(now())
 
   @@index([orderId])
   @@index([productId])
+  @@index([batchNumber])
   @@map("order_item")
+}
+
+model TableSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  isActive  Boolean  @default(true)
+
+  tableId   String
+  table     Table    @relation(fields: [tableId], references: [id])
+
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([tableId])
+  @@index([token])
+  @@map("table_session")
 }
 
 model Category {

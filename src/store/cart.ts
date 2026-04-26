@@ -13,6 +13,9 @@ export interface CartItem {
 interface CartState {
   items: CartItem[];
   hasHydrated: boolean;
+  tableId: string | null;
+  setHasHydrated: (value: boolean) => void;
+  setTableId: (id: string) => void;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -29,7 +32,10 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      tableId: null,
       hasHydrated: false,
+      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
+      setTableId: (id) => set({ tableId: id }),
       addItem: (item) =>
         set((state) => {
           const existingItem = state.items.find((i) => i.id === item.id);
@@ -44,10 +50,12 @@ export const useCartStore = create<CartState>()(
           }
           return { items: [...state.items, item] };
         }),
+
       removeItem: (id) =>
         set((state) => ({
           items: state.items.filter((i) => i.id !== id),
         })),
+
       updateQuantity: (id, quantity) =>
         set((state) => ({
           items: state.items
@@ -56,7 +64,9 @@ export const useCartStore = create<CartState>()(
             )
             .filter((i) => i.quantity > 0),
         })),
+
       clearCart: () => set({ items: [] }),
+
       getTotals: () => {
         const items = get().items;
         const subtotal = items.reduce(
@@ -72,9 +82,7 @@ export const useCartStore = create<CartState>()(
     {
       name: "poslenda-cart",
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.hasHydrated = true;
-        }
+        state?.setHasHydrated(true);
       },
     },
   ),

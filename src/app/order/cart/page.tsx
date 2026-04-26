@@ -9,8 +9,6 @@ import {
   ShoppingCart,
   Minus,
   Plus,
-  Utensils,
-  Bike,
   QrCode,
   Compass,
   History,
@@ -24,8 +22,20 @@ export default function CartPage() {
     ? getTotals()
     : { subtotal: 0, tax: 0, total: 0, count: 0 };
 
-  const { subtotal, tax, total, count: cartCount } = totals;
+  const { subtotal, count: cartCount } = totals;
   const router = useRouter();
+
+  const dummyFees = {
+    serviceFee: 1500,
+    appFee: 1500,
+    taxRate: 0.11,
+  };
+
+  const serviceFee = dummyFees.serviceFee;
+  const appFee = dummyFees.appFee;
+  const taxableAmount = subtotal + serviceFee + appFee;
+  const tax = taxableAmount * dummyFees.taxRate;
+  const total = taxableAmount + tax;
 
   const formatIDR = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -49,7 +59,7 @@ export default function CartPage() {
             </span>
             <div className="hidden md:flex items-center gap-6">
               <Link
-                href="/"
+                href={{ pathname: "/order" }}
                 className="text-stone-500 dark:text-stone-400 font-medium hover:text-[#8C9163] transition-colors duration-200"
               >
                 Menu
@@ -174,35 +184,58 @@ export default function CartPage() {
           {items.length > 0 && (
             <aside className="lg:col-span-5 space-y-8 sticky top-24">
               <div className="bg-surface-container-high rounded-2xl p-8">
-                <h2 className="text-xl font-bold font-headline mb-6">
-                  Pesanan Anda
-                </h2>
-                <div className="space-y-4 mb-8">
+                {/* Header Section */}
+                <div className="border-b border-amber-500 pb-3">
+                  <h2 className="text-base font-bold font-headline">
+                    Rincian Pembayaran
+                  </h2>
+                </div>
+
+                {/* Details Section */}
+                <div className="space-y-4 mb-8 mt-4">
                   <div className="flex justify-between items-center text-on-surface-variant">
                     <span className="font-medium">Subtotal</span>
                     <span className="font-bold text-on-surface">
                       {formatIDR(subtotal)}
                     </span>
                   </div>
+
                   <div className="flex justify-between items-center text-on-surface-variant">
-                    <span className="font-medium">Tax (11%)</span>
+                    <span className="font-medium">Pajak PPH21 (11%)</span>
                     <span className="font-bold text-on-surface">
                       {formatIDR(tax)}
                     </span>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-outline-variant/20 flex justify-between items-center">
-                    <span className="text-xl font-extrabold font-headline">
+
+                  <div className="flex justify-between items-center text-on-surface-variant">
+                    <span className="font-medium">Biaya Service</span>
+                    <span className="font-bold text-on-surface">
+                      {formatIDR(1500)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-on-surface-variant">
+                    <span className="font-medium">Biaya Aplikasi</span>
+                    <span className="font-bold text-on-surface">
+                      {formatIDR(1500)}
+                    </span>
+                  </div>
+
+                  {/* Total Section */}
+                  <div className="pt-4 mt-4 border-t border-outline-variant flex justify-between items-center">
+                    <span className="text-lg font-extrabold font-headline">
                       Total
                     </span>
-                    <span className="text-2xl font-extrabold font-headline text-primary">
+                    <span className="text-lg font-extrabold font-headline text-primary">
                       {formatIDR(total)}
                     </span>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                {/* Button Section */}
+                <div>
                   <button
-                    onClick={() => router.push("/checkout" as any)}
+                    onClick={() => router.push("/order/checkout")}
                     className="w-full bg-linear-to-br from-primary to-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition-all transform active:scale-95 flex items-center justify-center gap-2"
                   >
                     <span>Lanjut ke QRIS Checkout</span>
@@ -218,7 +251,7 @@ export default function CartPage() {
       {/* Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pt-2 pb-safe bg-[#fcf9f4]/85 dark:bg-stone-950/85 backdrop-blur-xl shadow-[0_-12px_32px_rgba(93,98,56,0.08)] rounded-t-[2rem]">
         <Link
-          href="/"
+          href={{ pathname: "/order" }}
           className="flex flex-col items-center justify-center text-stone-500 dark:text-stone-400 px-4 py-2 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all active:scale-90 duration-200 ease-out"
         >
           <Compass size={20} className="mb-1" />
