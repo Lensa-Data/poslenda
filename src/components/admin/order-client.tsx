@@ -12,6 +12,12 @@ export type OrderItemData = {
   options?: string;
 };
 
+export type OrderFeeData = {
+  id: string;
+  name: string;
+  amount: number;
+};
+
 export type OrderData = {
   id: string;
   orderNumber: string;
@@ -19,9 +25,11 @@ export type OrderData = {
   tableName: string;
   areaName: string;
   status: "PENDING" | "PAID" | "CANCELLED";
+  subtotalAmount: number;
   totalAmount: number;
   createdAt: string;
   items: OrderItemData[];
+  fees: OrderFeeData[];
 };
 
 export type TableData = {
@@ -38,13 +46,22 @@ export type ProductData = {
   categoryName: string;
 };
 
+export type FeeData = {
+  id: string;
+  name: string;
+  type: "PERCENTAGE" | "FIXED";
+  value: number;
+  isActive: boolean;
+};
+
 interface OrderClientProps {
   initialOrders: OrderData[];
   tables: TableData[];
   products: ProductData[];
+  activeFees: FeeData[];
 }
 
-export default function OrderClient({ initialOrders, tables, products }: OrderClientProps) {
+export default function OrderClient({ initialOrders, tables, products, activeFees }: OrderClientProps) {
   const [orders, setOrders] = useState<OrderData[]>(initialOrders);
   const [activeTab, setActiveTab] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [search, setSearch] = useState("");
@@ -145,7 +162,14 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
     setCart(prev => prev.filter(item => item.product.id !== productId));
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
+  
+  const appliedFees = activeFees.map(fee => {
+    const feeAmount = fee.type === "PERCENTAGE" ? subtotal * (fee.value / 100) : fee.value;
+    return { name: fee.name, amount: feeAmount };
+  });
+
+  const grandTotal = subtotal + appliedFees.reduce((sum, fee) => sum + fee.amount, 0);
 
   const submitOrder = async () => {
     if (!selectedTable) return setKasirError("Please select a table to assign this order.");
@@ -210,6 +234,13 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
       </div>
     `).join("");
 
+    const feesHtml = order.fees.map(f => `
+      <div class="row" style="opacity: 0.8;">
+        <span>${f.name}</span>
+        <span>${money(f.amount)}</span>
+      </div>
+    `).join("");
+
     const htmlContent = `
       <html>
         <head>
@@ -267,6 +298,14 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
           <div class="divider"></div>
           
           ${itemsHtml}
+          
+          <div class="divider"></div>
+          
+          <div class="row">
+            <span>SUBTOTAL</span>
+            <span>${money(order.subtotalAmount)}</span>
+          </div>
+          ${feesHtml}
           
           <div class="divider"></div>
           
@@ -591,11 +630,24 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
                     </select>
                   </div>
                   
-                  <div className="flex justify-between items-end mt-2 mb-2">
-                    <span className="text-sm font-extrabold uppercase tracking-widest opacity-50">Subtotal</span>
-                    <span className="text-2xl font-extrabold text-[var(--a-on-surface)]" style={{ fontFamily: "Manrope, sans-serif" }}>
-                      {money(cartTotal)}
-                    </span>
+                  <div className="flex flex-col gap-1 mt-2 mb-2">
+                    <div className="flex justify-between items-center text-sm font-bold opacity-60">
+                      <span>Subtotal</span>
+                      <span>{money(subtotal)}</span>
+                    </div>
+                    {appliedFees.map((fee, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs font-bold opacity-50">
+                        <span>{fee.name}</span>
+                        <span>{money(fee.amount)}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-dashed border-neutral-200 my-1"></div>
+                    <div className="flex justify-between items-end">
+                      <span className="text-sm font-extrabold uppercase tracking-widest opacity-50">Grand Total</span>
+                      <span className="text-2xl font-extrabold text-[var(--a-on-surface)]" style={{ fontFamily: "Manrope, sans-serif" }}>
+                        {money(grandTotal)}
+                      </span>
+                    </div>
                   </div>
                   
                   <button 

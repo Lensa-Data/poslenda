@@ -22,15 +22,41 @@ export async function createOrder(data: CreateOrderInput) {
       return { success: false, error: "Cannot create an empty order." };
     }
 
-    // Server-side calculation of total amount for security
-    const totalAmount = data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // 1. Calculate subtotal
+    const subtotalAmount = data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     
-    // Generate unique order number (e.g. ORD-123456)
+    // 2. Fetch active fees
+    const activeFees = await prisma.fee.findMany({
+      where: { isActive: true }
+    });
+
+    // 3. Calculate total and prepare OrderFee records
+    let totalAmount = subtotalAmount;
+    const orderFeesToCreate = [];
+
+    for (const fee of activeFees) {
+      let feeAmount = 0;
+      if (fee.type === "PERCENTAGE") {
+        feeAmount = subtotalAmount * (fee.value / 100);
+      } else if (fee.type === "FIXED") {
+        feeAmount = fee.value;
+      }
+      
+      totalAmount += feeAmount;
+      
+      orderFeesToCreate.push({
+        name: fee.name,
+        amount: feeAmount
+      });
+    }
+
+    // 4. Generate unique order number (e.g. ORD-123456)
     const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const order = await prisma.order.create({
       data: {
         orderNumber,
+        subtotalAmount,
         totalAmount,
         tableId: data.tableId,
         status: "PENDING",
@@ -42,10 +68,14 @@ export async function createOrder(data: CreateOrderInput) {
             quantity: item.quantity,
             options: item.options,
           }))
+        },
+        fees: {
+          create: orderFeesToCreate
         }
       },
       include: {
-        items: true
+        items: true,
+        fees: true
       }
     });
     

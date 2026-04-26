@@ -11,6 +11,7 @@ export default async function OrdersPage() {
         include: { area: true }
       },
       items: true,
+      fees: true,
     },
     orderBy: {
       createdAt: 'desc'
@@ -25,6 +26,7 @@ export default async function OrdersPage() {
     tableName: o.table.name,
     areaName: o.table.area.name,
     status: o.status,
+    subtotalAmount: o.subtotalAmount,
     totalAmount: o.totalAmount,
     createdAt: o.createdAt.toISOString(),
     items: o.items.map(i => ({
@@ -34,7 +36,12 @@ export default async function OrdersPage() {
       price: i.price,
       quantity: i.quantity,
       options: i.options || undefined,
-    }))
+    })),
+    fees: (o as any).fees ? (o as any).fees.map((f: any) => ({
+      id: f.id,
+      name: f.name,
+      amount: f.amount
+    })) : []
   }));
 
   // 2. Fetch Available Tables for new order binding
@@ -64,5 +71,11 @@ export default async function OrdersPage() {
     categoryName: p.category.name,
   }));
 
-  return <OrderClient initialOrders={orders} tables={tables} products={products} />;
+  // 4. Fetch Active Fees for POS Calculator preview
+  const activeFees = await prisma.fee.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  return <OrderClient initialOrders={orders} tables={tables} products={products} activeFees={activeFees.map(f => ({...f, type: f.type as "FIXED"|"PERCENTAGE"}))} />;
 }
