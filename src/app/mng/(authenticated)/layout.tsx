@@ -15,7 +15,7 @@ export default async function AdminLayout({
   });
 
   if (!session?.user) {
-    redirect("/mng/login");
+    redirect("/mng/login" as any);
   }
 
   return (

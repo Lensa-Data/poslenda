@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { createOrder, updateOrderStatus, deleteOrder } from "@/app/actions/order";
 
 export type OrderItemData = {
@@ -48,6 +48,7 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
   const [orders, setOrders] = useState<OrderData[]>(initialOrders);
   const [activeTab, setActiveTab] = useState<"ACTIVE" | "HISTORY">("ACTIVE");
   const [search, setSearch] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modals
   const [isKasirOpen, setIsKasirOpen] = useState(false);
@@ -60,14 +61,36 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
   const [isLoading, setIsLoading] = useState(false);
   const [kasirError, setKasirError] = useState("");
 
+  // Fetch fresh orders from the server
+  const fetchOrders = useCallback(async (showSpinner = true) => {
+    try {
+      if (showSpinner) setIsRefreshing(true);
+      const res = await fetch("/api/admin/orders");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.orders) setOrders(data.orders);
+      }
+    } catch (err) {
+      console.error("Failed to refresh orders:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  // Auto-refresh every 30 seconds to catch new customer orders
+  useEffect(() => {
+    const interval = setInterval(() => fetchOrders(false), 30000);
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
+
   // Derivations
   const filteredOrders = useMemo(() => {
-    return initialOrders.filter((o) => {
+    return orders.filter((o) => {
       const matchTab = activeTab === "ACTIVE" ? o.status === "PENDING" : (o.status === "PAID" || o.status === "CANCELLED");
       const matchSearch = o.orderNumber.toLowerCase().includes(search.toLowerCase()) || o.tableName.toLowerCase().includes(search.toLowerCase());
       return matchTab && matchSearch;
     });
-  }, [initialOrders, activeTab, search]);
+  }, [orders, activeTab, search]);
 
   const categories = useMemo(() => {
     const cats = new Set(products.map(p => p.categoryName));
@@ -78,13 +101,21 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
   const handleUpdateStatus = async (orderId: string, status: "PAID" | "CANCELLED") => {
     if (!window.confirm(`Mark this order as ${status}?`)) return;
     const res = await updateOrderStatus(orderId, status);
-    if (!res.success) alert(res.error);
+    if (res.success) {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    } else {
+      alert(res.error);
+    }
   };
 
   const handleDelete = async (orderId: string, orderNumber: string) => {
     if (!window.confirm(`Permanently delete order ${orderNumber}? This action cannot be undone.`)) return;
     const res = await deleteOrder(orderId);
-    if (!res.success) alert(res.error);
+    if (res.success) {
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+    } else {
+      alert(res.error);
+    }
   };
 
   // Kasir Logic
@@ -132,7 +163,28 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
 
     const res = await createOrder({ tableId: selectedTable, items: itemsPayload });
     
-    if (res.success) {
+    if (res.success && res.data) {
+      // Add new order to local state immediately
+      const table = tables.find(t => t.id === selectedTable);
+      const newOrder: OrderData = {
+        id: res.data.id,
+        orderNumber: res.data.orderNumber,
+        tableId: selectedTable,
+        tableName: table?.name || "",
+        areaName: table?.areaName || "",
+        status: "PENDING",
+        totalAmount: cartTotal,
+        createdAt: new Date().toISOString(),
+        items: res.data.items.map((i: any) => ({
+          id: i.id,
+          productId: i.productId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          options: i.options || undefined,
+        })),
+      };
+      setOrders(prev => [newOrder, ...prev]);
       setIsKasirOpen(false);
       setCart([]);
       setSelectedTable("");
@@ -272,16 +324,28 @@ export default function OrderClient({ initialOrders, tables, products }: OrderCl
             Monitor live table bills, process payments, and manual POS entries.
           </p>
         </div>
-        <button
-          onClick={() => { setIsKasirOpen(true); setKasirError(""); setCart([]); setSelectedTable(""); }}
-          className="px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all active:scale-95 text-white"
-          style={{
-            background: "linear-gradient(to bottom right, var(--a-primary), var(--a-primary-container))",
-          }}
-        >
-          <span className="material-symbols-outlined">point_of_sale</span>
-          New POS Order
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchOrders(true)}
+            disabled={isRefreshing}
+            className="px-4 py-3 rounded-xl flex items-center gap-2 font-bold transition-all active:scale-95 border border-neutral-200 hover:bg-neutral-50 disabled:opacity-50"
+            style={{ color: "var(--a-on-surface-variant)" }}
+            title="Refresh Orders"
+          >
+            <span className={`material-symbols-outlined text-[20px] ${isRefreshing ? 'animate-spin' : ''}`}>sync</span>
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => { setIsKasirOpen(true); setKasirError(""); setCart([]); setSelectedTable(""); }}
+            className="px-6 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all active:scale-95 text-white"
+            style={{
+              background: "linear-gradient(to bottom right, var(--a-primary), var(--a-primary-container))",
+            }}
+          >
+            <span className="material-symbols-outlined">point_of_sale</span>
+            New POS Order
+          </button>
+        </div>
       </header>
 
       {/* Main Board */}

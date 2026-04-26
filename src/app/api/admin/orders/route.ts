@@ -1,45 +1,9 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/db";
 
-type OrderStatus = "completed" | "pending" | "cancelled";
-
-type Order = {
-  id: string;
-  orderNumber: string;
-  items: string[];
-  total: number;
-  status: OrderStatus;
-  createdAt: string;
-};
-
-// TODO: Replace with real DB queries when Order model is added to Prisma schema
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    orderNumber: "#8842",
-    items: ["2x Ethiopian Single Origin", "1x Almond Croissant"],
-    total: 24.50,
-    status: "completed",
-    createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "2",
-    orderNumber: "#8841",
-    items: ["1x Matcha Latte", "1x Avocado Sourdough Toast"],
-    total: 18.20,
-    status: "completed",
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "3",
-    orderNumber: "#8840",
-    items: ["3x Flat White", "2x Banana Bread"],
-    total: 42.00,
-    status: "completed",
-    createdAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-  },
-];
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -48,27 +12,121 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ orders: mockOrders });
+  try {
+    const dbOrders = await prisma.order.findMany({
+      include: {
+        table: {
+          include: { area: true },
+        },
+        items: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const orders = dbOrders.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      tableId: o.tableId,
+      tableName: o.table.name,
+      areaName: o.table.area.name,
+      status: o.status,
+      totalAmount: o.totalAmount,
+      totalBatches: Math.max(...o.items.map((i) => i.batchNumber), 1),
+      createdAt: o.createdAt.toISOString(),
+      items: o.items.map((i) => ({
+        id: i.id,
+        productId: i.productId,
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+        options: i.options || undefined,
+        batchNumber: i.batchNumber,
+        itemStatus: i.itemStatus,
+        createdAt: i.createdAt.toISOString(),
+      })),
+    }));
+
+    return NextResponse.json({ orders });
+  } catch (error: any) {
+    console.error("Fetch orders error:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
-export async function POST(request: Request) {
+export async function PATCH(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json() as Partial<Order>;
+  try {
+    const body = await request.json();
+    const { orderId, status } = body;
 
-  // TODO: Save to DB when Order model is ready
-  const newOrder: Order = {
-    id: String(Date.now()),
-    orderNumber: `#${Math.floor(8000 + Math.random() * 1000)}`,
-    items: body.items ?? [],
-    total: body.total ?? 0,
-    status: "pending",
-    createdAt: new Date().toISOString(),
-  };
+    if (!orderId || !status) {
+      return NextResponse.json(
+        { error: "orderId and status are required" },
+        { status: 400 }
+      );
+    }
 
-  return NextResponse.json({ order: newOrder }, { status: 201 });
+    if (!["PENDING", "PAID", "CANCELLED"].includes(status)) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
+    }
+
+    const order = await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: {
+        table: {
+          include: { area: true },
+        },
+        items: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        tableId: order.tableId,
+        tableName: order.table.name,
+        areaName: order.table.area.name,
+        status: order.status,
+        totalAmount: order.totalAmount,
+        createdAt: order.createdAt.toISOString(),
+        items: order.items.map((i) => ({
+          id: i.id,
+          productId: i.productId,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+          options: i.options || undefined,
+          batchNumber: i.batchNumber,
+          itemStatus: i.itemStatus,
+          createdAt: i.createdAt.toISOString(),
+        })),
+      },
+    });
+  } catch (error: any) {
+    console.error("Update order error:", error);
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

@@ -116,7 +116,7 @@ function ActivityItemCard({ item }: { item: ActivityItem }) {
     <div className="activity-card flex items-center justify-between p-5 rounded-2xl cursor-default">
       <div className="flex items-center gap-4">
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+          className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
           style={{ backgroundColor: item.iconBg, color: item.iconColor }}
         >
           <span className="material-symbols-outlined">{item.icon}</span>
@@ -137,7 +137,7 @@ function ActivityItemCard({ item }: { item: ActivityItem }) {
         </div>
       </div>
 
-      <div className="text-right flex-shrink-0 ml-4">
+      <div className="text-right shrink-0 ml-4">
         {item.rightContent.type === "amount" && (
           <>
             <p
